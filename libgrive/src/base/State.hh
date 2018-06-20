@@ -77,7 +77,10 @@ private :
 	ResourceTree		m_res ;
 	int					m_cstamp ;
 	std::string			m_ign ;
+	/** Store the ignore regex for files and dirs. */
 	boost::regex		m_ign_re ;
+	/** Store the not ignoring folders or file regex (represented by --dir option) */
+	boost::regex		m_not_ign_re ;
 	Val					m_st ;
 	bool				m_force ;
 	bool				m_ign_changed ;

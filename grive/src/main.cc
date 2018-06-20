@@ -103,6 +103,8 @@ void InitLog( const po::variables_map& vm )
 
 int Main( int argc, char **argv )
 {
+	std::cout << "v0.5.2-lparolari" << std::endl; 
+
 	InitGCrypt() ;
 	
 	// construct the program options

@@ -29,6 +29,7 @@
 #include "json/JsonParser.hh"
 
 #include <fstream>
+#include <iostream>
 
 namespace gr {
 
@@ -54,9 +55,21 @@ State::State( const fs::path& root, const Val& options  ) :
 	m_force = options.Has( "force" ) ? options["force"].Bool() : false ;
 
 	std::string m_orig_ign = m_ign;
-	if ( options.Has( "ignore" ) && options["ignore"].Str() != m_ign )
-		m_ign = options["ignore"].Str();
-	else if ( options.Has( "dir" ) )
+
+	std::string ign_str = m_ign;
+	std::string not_ign_str = "";
+
+	if ( options.Has( "ignore" ) && options["ignore"].Str() != m_ign ) {
+		ign_str = options["ignore"].Str();
+	}
+	// updated ignrore regex, maybe (I'm sure) is there a better way to do this?
+	ign_str.insert(2,"\.*(");
+	ign_str.insert(ign_str.length() - 2, ign_str.empty() ? "" : "|");
+	ign_str.insert(ign_str.length() - 2, "grive|grive_state|trash");
+	ign_str.insert(ign_str.length() - 1, "\.*)");
+
+
+	if ( options.Has( "dir" ) )
 	{
 		const boost::regex trim_path( "^/+|/+$" );
 		std::string m_dir = regex_replace( options["dir"].Str(), trim_path, "" );
@@ -71,12 +84,19 @@ State::State( const fs::path& root, const Val& options  ) :
 				pos = pos*2 + 3;
 			}
 			std::string ign = "^(?!"+m_dir+"(/|$))";
-			m_ign = ign;
+			not_ign_str = ign;
 		}
 	}
 
-	m_ign_changed = m_orig_ign != "" && m_orig_ign != m_ign;
-	m_ign_re = boost::regex( m_ign.empty() ? "^\\.(grive$|grive_state$|trash)" : ( m_ign+"|^\\.(grive|grive_state|trash)" ) );
+	//std::cout << "ign_str: " << ign_str << std::endl;
+	//std::cout << "not_ign_str: " << not_ign_str << std::endl;
+
+	m_ign_changed =  m_orig_ign != ""  &&  m_orig_ign != ign_str  &&  m_orig_ign != not_ign_str; 
+	m_ign_re = boost::regex( ign_str ); //boost::regex( ign_str.empty() ? "^\\.(grive$|grive_state$|trash)" : ( ign_str+"|^\\.(grive|grive_state|trash)" ) );
+	m_not_ign_re = boost::regex( not_ign_str );
+
+	//std::cout << m_not_ign_re.str() << std::endl;
+	//std::cout << m_ign_re.str() << std::endl;
 }
 
 State::~State()
@@ -93,7 +113,14 @@ void State::FromLocal( const fs::path& p )
 
 bool State::IsIgnore( const std::string& filename )
 {
-	return regex_search( filename.c_str(), m_ign_re );
+	// variable's names are not the best :)
+	bool not_ignored = 	regex_search( filename.c_str(), m_not_ign_re );
+	bool ignored = 		regex_search( filename.c_str(), m_ign_re );
+
+	// cout for debugging purpose.
+	// std::cout << filename << " (" << not_ignored << ", " << ignored << ", " << (not_ignored || ignored) << ")" << std::endl;
+
+	return ignored || not_ignored;
 }
 
 void State::FromLocal( const fs::path& p, Resource* folder, Val& tree )
