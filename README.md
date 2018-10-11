@@ -1,3 +1,14 @@
+# WARNING!
+
+10 Oct 2018, Luca Parolari
+
+This is an unmatained, not tested and temporary fix for vitalif/grive2 project, that, up to now solved the problem only to my configuration.
+
+For other informations about this issue and its fix look at https://github.com/vitalif/grive2/issues/199
+
+For other updates see the root project https://github.com/vitalif/grive2
+
+
 # Grive2 0.5.1-dev
 
 28 Sep 2016, Vitaliy Filippov
